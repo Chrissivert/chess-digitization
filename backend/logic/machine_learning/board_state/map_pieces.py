@@ -99,9 +99,9 @@ async def get_payload(piece_model_ref: ort.InferenceSession,
         greedy = has_greedy_move
         payload = make_update_payload(game_ref.chess_board, greedy), best_move
 
-    # draw_points(video_ref, centers)
-    # draw_polygon(video_ref, boundary)
-    # draw_boxes_with_scores(video_ref, boxes, scores)
+    draw_points(video_ref, centers)
+    draw_polygon(video_ref, boundary)
+    draw_boxes_with_scores(video_ref, boxes, scores)
     
 
     return video_ref, payload

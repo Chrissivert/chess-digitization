@@ -53,8 +53,8 @@ async def process_video(
                     await board_service.send_move(board_id, move)
                     
 
-            # cv2.imshow("Chess Board Detection", cv2.resize(frame, (1280, 720)))
-            # cv2.waitKey(1)
+            cv2.imshow("Chess Board Detection", cv2.resize(frame, (1280, 720)))
+            cv2.waitKey(1)
 
         frame_counter += 1
 

@@ -24,7 +24,7 @@ def preprocess_image(image: np.ndarray) -> np.ndarray:
         Image is in the format CHW.
     """
 
-    image = cv2.resize(image, (MODEL_WIDTH, MODEL_HEIGHT))  # Resize image
+    # image = cv2.resize(image, (MODEL_WIDTH, MODEL_HEIGHT))  # Resize image
     image = image / 255.0  # Normalize pixel values to [0, 1]
     image = image.transpose(2, 0, 1)  # Convert HWC to CHW
     return image[np.newaxis, ...].astype(np.float16)  # Add batch dimension and convert to float16
@@ -122,6 +122,12 @@ def get_input(
     pad_bottom = dy // 2
     pad_top = dy - pad_bottom
     padding = [pad_left, pad_right, pad_top, pad_bottom]
+    
+    video_ref = tf.pad(
+    video_ref,
+    paddings=[[pad_top, pad_bottom], [pad_left, pad_right], [0, 0]],
+    constant_values=114
+)
 
     image4d = preprocess_image(video_ref.numpy())
     
