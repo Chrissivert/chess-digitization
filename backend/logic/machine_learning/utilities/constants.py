@@ -7,7 +7,6 @@ CORNER_KEYS = ["h1", "a1", "a8", "h8"]
 SQUARE_SIZE = 128
 BOARD_SIZE = 8 * SQUARE_SIZE
 LABELS = ["b", "k", "n", "p", "q", "r", "B", "K", "N", "P", "Q", "R"]
-PIECE_SYMBOLS = ["b", "k", "n", "p", "q", "r"]
 
 SQUARE_NAMES = [
     'a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
