@@ -1,8 +1,7 @@
-import cv2
 import numpy as np
 import tensorflow as tf
 
-from typing import Tuple, List, Dict, Optional
+from typing import Tuple, Optional
 from logic.machine_learning.detection.bbox_scores import get_bbox
 from logic.machine_learning.utilities.constants import MODEL_WIDTH, MODEL_HEIGHT
 
@@ -23,23 +22,9 @@ def preprocess_image(image: np.ndarray) -> np.ndarray:
         numpy.ndarray: Preprocessed image ready for inference (with batch dimension and normalized).
         Image is in the format CHW.
     """
-
-    # image = cv2.resize(image, (MODEL_WIDTH, MODEL_HEIGHT))  # Resize image
     image = image / 255.0  # Normalize pixel values to [0, 1]
     image = image.transpose(2, 0, 1)  # Convert HWC to CHW
-    return image[np.newaxis, ...].astype(np.float16)  # Add batch dimension and convert to float16
-
-    #After adding a batch dimension the image is in the shape (1,C,H,W)
-    # We need to add a batch dimension to the image to match the input shape expected by the model
-    #This you can confirm in netron.app by loading the model and checking the input shape.
-
-    #We convert it to float16 to match the model's input data type. Also float16 saves memory
-    #and speeds up computation during inference. Inference is the process of using a trained model to 
-    #make predictions on new data.
-
-    #One other thing, normalizing the pixel values helps improve model performance by
-    #Ensuring consistent input range, as many models are trained with inputs in the [0, 1] range.
-    
+    return image[np.newaxis, ...].astype(np.float16)  # Add batch dimension
 
 
 def get_input(

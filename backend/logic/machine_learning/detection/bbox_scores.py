@@ -165,7 +165,6 @@ def get_centers_of_bbox(boxes: tf.Tensor) -> tf.Tensor:
         tf.Tensor: A tensor of shape (N, 2), where each row contains the center 
                    coordinates [cx, cy] of the corresponding bounding box.
     """
-    # Ensure boxes are of type float16 (as your model is using float16)
     boxes = tf.cast(boxes, dtype=tf.float16)
 
     # Extract left, top, right, and bottom coordinates

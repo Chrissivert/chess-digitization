@@ -1,8 +1,7 @@
-import time, cv2, onnxruntime as ort
+import cv2, onnxruntime as ort
 from typing import Optional
 from logic.machine_learning.detection.run_detections import get_board_corners
 from logic.machine_learning.board_state.map_pieces import get_payload
-from logic.machine_learning.utilities.move import get_moves_pairs
 import logic.api.services.board_storage as storage
 from logic.api.services import board_storage
 import asyncio
@@ -59,7 +58,7 @@ async def process_video(
         frame_counter += 1
 
     cap.release()
-    # cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
 
 async def prepare_to_run_video(board_id: int, video: cv2.VideoCapture):
     piece_session  = ort.InferenceSession("resources/models/480M_leyolo_pieces.onnx")

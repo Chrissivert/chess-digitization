@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from typing import List, Tuple, Union
+from typing import List, Tuple
 from logic.machine_learning.utilities.constants import MODEL_WIDTH, MODEL_HEIGHT
 
 

@@ -1,26 +1,9 @@
 import chess
 import chess.pgn
 
-from logic.machine_learning.utilities.constants import START_FEN
-
-
-#This would be a custom defined chessboard, however for now we are using the default chessboard in chess.py
-
-# class Game:
-#     def __init__(self, game_id: str, fen: str = START_FEN, moves: str = "", start: str = START_FEN, last_move: str = "", greedy: bool = False):
-#         self.id: str = game_id  # Unique game identifier
-#         self.fen: str = fen  # FEN representation of the board
-#         self.moves: str = moves  # PGN-like move history
-#         self.start: str = start  # Initial FEN or start position
-#         self.last_move: str = last_move  # Last move played
-#         self.greedy: bool = greedy  # Boolean flag for greedy mode
-#         self.board: chess.Board = chess.Board(fen)  # Chess board initialized from FEN
-
 def get_moves_from_pgn(board: chess.Board) -> str:
     """Convert board history to PGN string."""
     game = chess.pgn.Game.from_board(board)
-
-    # Create a PGN exporter
     exporter = chess.pgn.StringExporter(headers=False, variations=False, comments=False)
     
     pgn = game.accept(exporter)

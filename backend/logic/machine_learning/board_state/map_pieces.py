@@ -140,8 +140,6 @@ def process_state(state: np.ndarray, moves_pairs: list, possible_moves: set) -> 
             if score > best_score1:
                 best_move = move_pair['move1']
                 best_score1 = score
-
-        # ✅ New condition added to match TS behavior
         if (
             move_pair['move2'] is None 
             or move_pair['moves'] is None 
@@ -164,6 +162,7 @@ def process_state(state: np.ndarray, moves_pairs: list, possible_moves: set) -> 
 
 
 def get_squares(boxes: tf.Tensor, centers3D: tf.Tensor, boundary3D: tf.Tensor) -> tf.Tensor:
+    #Not working as intended
     """
     Given the boxes, centers, and boundary, computes the square for each box by 
     determining the index of the minimum distance between box centers and the provided centers.

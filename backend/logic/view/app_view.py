@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import json
 import asyncio
 from logic.view.ctk_type_enum import CtkTypeEnum
 from logic.api.entity.camera import CameraDoesNotExistError
@@ -10,7 +11,11 @@ from logic.view.progress_bar_view import ProgressBarTopLevel
 from logic.view.reset_specific_board_view import BoardResetSelectorTopLevel
 
 ctk.set_appearance_mode("system")
-ctk.set_default_color_theme("blue")
+ctk.set_default_color_theme("resources/themes/custom_colours.json")
+
+def load_theme_from_file(filepath):
+    with open(filepath, 'r') as f:
+        return json.load(f)
 
 class App(ctk.CTk):
   """ Main application class for the ChessCamera control panel. """
