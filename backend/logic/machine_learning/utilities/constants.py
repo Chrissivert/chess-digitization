@@ -31,14 +31,3 @@ def make_label_map():
     return {label: i for i, label in enumerate(LABELS)}
 
 LABEL_MAP = make_label_map()
-
-
-# Castling map to handle rook movement during castling
-# Maps king's destination square to: (rook start square, rook end square, rook label)
-CASTLING_MAP = {
-    "g1": [SQUARE_MAP["h1"], SQUARE_MAP["f1"], LABEL_MAP["R"]],
-    "c1": [SQUARE_MAP["a1"], SQUARE_MAP["d1"], LABEL_MAP["R"]],
-    "g8": [SQUARE_MAP["h8"], SQUARE_MAP["f8"], LABEL_MAP["r"]],
-    "c8": [SQUARE_MAP["a8"], SQUARE_MAP["d8"], LABEL_MAP["r"]]
-}
-

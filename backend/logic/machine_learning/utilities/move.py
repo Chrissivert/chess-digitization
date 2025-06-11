@@ -1,10 +1,7 @@
 import chess
 import numpy as np
 from typing import Dict, List, Optional
-from logic.machine_learning.utilities.constants import LABEL_MAP, CASTLING_MAP, SQUARE_MAP
-
-
-
+from logic.machine_learning.utilities.constants import LABEL_MAP
 
 class MoveData(Dict):
     sans: List[str]
@@ -48,32 +45,6 @@ def get_data(board: chess.Board, move: chess.Move) -> MoveData:
     from_squares = [from_square_idx]
     to_squares = [to_square_idx]
     targets = [get_piece_idx(board, move)]
-
-    if board.is_castling(move):
-        # Handle castling moves (kingside or queenside)
-        rook_from, rook_to = CASTLING_MAP.get(move.to_square, (None, None))
-        if rook_from is not None and rook_to is not None:
-            from_squares.append(rook_from)
-            to_squares.append(rook_to)
-            targets.append("rook")
-
-    elif board.is_en_passant(move):
-        to_file = chess.square_name(move.to_square)[0]
-        from_rank = chess.square_name(move.from_square)[1]
-        captured_square_name = to_file + from_rank
-        captured_square = SQUARE_MAP[captured_square_name]
-        
-        # Check that there really is a pawn on the captured square
-        # captured_piece = board.piece_at(captured_square)
-        # if captured_piece is not None and captured_piece.piece_type == chess.PAWN:
-        #     print("move made")
-            # from_squares.append(captured_square)
-
-            
-            
-
-
-
 
     move_data: MoveData = {
         "sans": [board.san(move)],
