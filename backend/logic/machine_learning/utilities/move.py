@@ -1,7 +1,7 @@
 import chess
 import numpy as np
 from typing import Dict, List, Optional
-from logic.machine_learning.utilities.constants import LABEL_MAP, CASTLING_MAP
+from logic.machine_learning.utilities.constants import LABEL_MAP, CASTLING_MAP, SQUARE_MAP
 
 
 
@@ -40,19 +40,7 @@ def get_piece_idx(board: chess.Board, move: chess.Move) -> Optional[int]:
 def get_data(board: chess.Board, move: chess.Move) -> MoveData:
     """
     Gathers data for a single move, including from/to squares and piece identity.
-    
     Handles special moves such as castling and en passant.
-
-    Args:
-        board (chess.Board): The board state before the move.
-        move (chess.Move): The move to be analyzed.
-
-    Returns:
-        MoveData: A dictionary with:
-            - 'sans': [move in standard algebraic notation],
-            - 'from': list of squares the pieces move from,
-            - 'to': list of destination squares,
-            - 'targets': list of piece labels involved in the move.
     """
     from_square_idx = move.from_square
     to_square_idx = move.to_square
@@ -64,20 +52,31 @@ def get_data(board: chess.Board, move: chess.Move) -> MoveData:
     if board.is_castling(move):
         # Handle castling moves (kingside or queenside)
         rook_from, rook_to = CASTLING_MAP.get(move.to_square, (None, None))
-        if rook_from and rook_to:
+        if rook_from is not None and rook_to is not None:
             from_squares.append(rook_from)
             to_squares.append(rook_to)
             targets.append("rook")
 
     elif board.is_en_passant(move):
-        # Handle en-passant capture
-        captured_pawn_square = chess.square_name(chess.square(
-            chess.square_file(move.to_square), chess.square_rank(move.from_square)
-        ))
-        from_squares.append(captured_pawn_square)
+        to_file = chess.square_name(move.to_square)[0]
+        from_rank = chess.square_name(move.from_square)[1]
+        captured_square_name = to_file + from_rank
+        captured_square = SQUARE_MAP[captured_square_name]
+        
+        # Check that there really is a pawn on the captured square
+        # captured_piece = board.piece_at(captured_square)
+        # if captured_piece is not None and captured_piece.piece_type == chess.PAWN:
+        #     print("move made")
+            # from_squares.append(captured_square)
+
+            
+            
+
+
+
 
     move_data: MoveData = {
-        "sans": [board.san(move)],  # Standard algebraic notation
+        "sans": [board.san(move)],
         "from_": from_squares,
         "to": to_squares,
         "targets": targets
