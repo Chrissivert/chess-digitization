@@ -41,7 +41,7 @@ const EvalBar: React.FC<EvalBarProps> = ({ evaluation, mate }) => {
    * - If invalid or unavailable, default to 50% (neutral)
    */
   const whitePercentage = (() => {
-    if (isMate && Math.abs(mate!) === 1) {
+    if (isMate) {
       return mate! > 0 ? 100 : 0;
     }
   
@@ -52,7 +52,7 @@ const EvalBar: React.FC<EvalBarProps> = ({ evaluation, mate }) => {
   })();
   
 
-  const isPositiveEvaluation = typeof evaluation === 'number' && evaluation > 0.0; // Determines if the eval is positive to switch text color appropriately
+const useBlackText = whitePercentage > 50;
 
   return (
     <div className="eval-bar">
@@ -64,12 +64,13 @@ const EvalBar: React.FC<EvalBarProps> = ({ evaluation, mate }) => {
         className="black-bar"
         style={{ height: `${100 - whitePercentage}%` }}
       />
-      <div className={`eval-text ${isPositiveEvaluation ? 'black-text' : 'white-text'}`}>
+      <div className={`eval-text ${useBlackText ? 'black-text' : 'white-text'}`}>
         {displayValue}
       </div>
     </div>
   );
 };
+
 
 
 export default EvalBar;
