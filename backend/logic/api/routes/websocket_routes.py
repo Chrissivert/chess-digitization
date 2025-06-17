@@ -17,9 +17,7 @@ async def websocket_endpoint(websocket: WebSocket, board_id: int) -> None:
     return
     
   storage.boards[board_id].clients.append(websocket)
-  try:
-    await websocket.send_text(f"FEN:{storage.boards[board_id].chess_board.fen()}")
-    
+  try:    
     for move in storage.boards[board_id].move_history:
       await websocket.send_text(move)
     while True:
@@ -27,3 +25,31 @@ async def websocket_endpoint(websocket: WebSocket, board_id: int) -> None:
   except Exception:
     if websocket in storage.boards[board_id].clients:
       storage.boards[board_id].clients.remove(websocket)
+      
+      
+      
+@router.websocket("/fen/{board_id}")
+async def websocket_fen_only(websocket: WebSocket, board_id: int) -> None:
+    """ Sends only the current FEN string over WebSocket.
+    
+    Args:
+      websocket (WebSocket): WebSocket connection
+      board_id (int): Board ID
+    """
+    await websocket.accept()
+    if board_id not in storage.boards:
+        await websocket.close()
+        return
+
+    storage.boards[board_id].clients.append(websocket)
+    try:
+        # Send only the current FEN
+        await websocket.send_text(f"FEN:{storage.boards[board_id].chess_board.fen()}")
+
+        # Keep connection open waiting for messages (to keep alive)
+        while True:
+            await websocket.receive_text()
+    except Exception:
+        if websocket in storage.boards[board_id].clients:
+            storage.boards[board_id].clients.remove(websocket)
+
