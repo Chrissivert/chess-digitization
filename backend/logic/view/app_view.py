@@ -9,6 +9,14 @@ from logic.api.entity.board_factory import BoardFactory
 import logic.view.state as state
 from logic.view.progress_bar_view import ProgressBarTopLevel
 from logic.view.reset_specific_board_view import BoardResetSelectorTopLevel
+import chess
+import chess.svg
+from PIL import Image, ImageTk
+import io
+import cairosvg  # to convert svg to png
+import customtkinter as ctk
+
+
 
 ctk.set_appearance_mode("system")
 ctk.set_default_color_theme("resources/themes/custom_colours.json")
@@ -119,6 +127,52 @@ class App(ctk.CTk):
     
     self.bind('<Return>', lambda e: self.apply_number_of_cameras())
     
+    self.fen_label = ctk.CTkLabel(container, text="Paste FEN", font=("Segoe UI", 14))
+    self.fen_label.pack()
+
+    self.fen_entry = ctk.CTkEntry(container, width=600, height=40, font=("Segoe UI", 14))
+    self.fen_entry.insert(0, chess.STARTING_FEN)
+    self.fen_entry.pack(pady=(5, 10))
+
+    self.update_fen_button = ctk.CTkButton(
+        container,
+        text="Update Board from FEN",
+        command=self.update_board_from_fen
+    )
+    self.update_fen_button.pack(pady=(0, 10))
+
+    # Canvas to display the board image
+    self.board_canvas = ctk.CTkCanvas(container, width=400, height=400, bg="white", highlightthickness=0)
+    self.board_canvas.pack(pady=(10, 10))
+
+    self.display_board(chess.STARTING_FEN)
+    
+
+  def update_board_from_fen(self):
+    fen = self.fen_entry.get().strip()
+    try:
+        board = chess.Board(fen)
+        self.display_board(board.fen())
+        self.highlight_entry_label("Board updated.", CtkTypeEnum.WARNING)
+    except Exception as e:
+        self.highlight_status_and_entry("Invalid FEN string.", CtkTypeEnum.ERROR)
+        print(f"Invalid FEN: {e}")
+
+  def display_board(self, fen):
+    """ Render FEN to image and display it on the canvas. """
+    board = chess.Board(fen)
+    svg_data = chess.svg.board(board=board)
+
+    # Convert SVG to PNG using cairosvg
+    png_data = cairosvg.svg2png(bytestring=svg_data)
+    image = Image.open(io.BytesIO(png_data))
+    image = image.resize((400, 400), Image.Resampling.LANCZOS)
+    self.board_img = ImageTk.PhotoImage(image)
+
+    self.board_canvas.create_image(0, 0, anchor="nw", image=self.board_img)
+
+
+      
   def reset_all_boards(self) -> None:
     self.highlight_entry_label("All boards reset succesfully.", CtkTypeEnum.WARNING)
     asyncio.run_coroutine_threadsafe(self._async_reset_all_boards(), state.event_loop)
