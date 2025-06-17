@@ -1,38 +1,31 @@
 import { useEffect, useState } from "react";
 
 export function useWebSocket(url: string) {
+  const [startFen, setStartFen] = useState<string | null>(null);
   const [moves, setMoves] = useState<string[]>([]);
-  const [fen, setFen] = useState<string | null>(null);  // new state for FEN
 
   useEffect(() => {
+    setStartFen(null);
     setMoves([]);
-    setFen(null);
 
     const socket = new WebSocket(url);
 
     socket.onmessage = (event) => {
-      const data = event.data;
-
-      if (data.startsWith("FEN:")) {
-        // Extract FEN string and update fen state
-        setFen(data.slice(4));
-      } else if (data === "RESET") {
+      if (event.data.startsWith("FEN:")) {
+        const fen = event.data.slice(4);
+        setStartFen(fen);
+        setMoves([]); // reset moves when new fen arrives
+      } else if (event.data === "RESET") {
         setMoves([]);
-        setFen(null);
-      } else if (data === "INVALID") {
+      } else if (event.data === "INVALID") {
         // handle invalid move if needed
-      } else if (data.startsWith("MOVE:")) {
-        // Extract move string and append it to moves
-        setMoves((prevMoves) => [...prevMoves, data.slice(5)]);
       } else {
-        // fallback: treat it as move if no prefix
-        setMoves((prevMoves) => [...prevMoves, data]);
+        setMoves((prevMoves) => [...prevMoves, event.data]);
       }
     };
 
     return () => socket.close();
   }, [url]);
 
-  // Return both fen and moves to be used by your component
-  return { fen, moves };
+  return { startFen, moves };
 }
