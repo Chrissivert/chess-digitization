@@ -161,7 +161,8 @@ class App(ctk.CTk):
             text="Start Tournament",
             font=("Segoe UI", 18),
             state="disabled",
-            height=100
+            height=100,
+            command=self.start_tournament
         )
         self.start_button.pack(pady=(10, 10), padx=20, fill="x")
 
