@@ -18,6 +18,8 @@ async def websocket_endpoint(websocket: WebSocket, board_id: int) -> None:
     
   storage.boards[board_id].clients.append(websocket)
   try:
+    await websocket.send_text(f"FEN:{storage.boards[board_id].chess_board.fen()}")
+    
     for move in storage.boards[board_id].move_history:
       await websocket.send_text(move)
     while True:

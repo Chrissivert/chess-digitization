@@ -1,45 +1,38 @@
 import { useEffect, useState } from "react";
 
-/**
- * Custom React Hook: useWebSocket
- *
- * This hook establishes a WebSocket connection to the provided URL and listens for incoming messages.
- * It maintains a list of chess moves (as strings) and updates the state based on messages received.
- *
- * @param url - The WebSocket server URL
- * @returns an array of move strings representing the game's move history
- */
-
 export function useWebSocket(url: string) {
-  const [moves, setMoves] = useState<string[]>([]); // State to store list of received moves
+  const [moves, setMoves] = useState<string[]>([]);
+  const [fen, setFen] = useState<string | null>(null);  // new state for FEN
 
   useEffect(() => {
-    setMoves([]);  // Clear moves when component (re)mounts or URL changes
-    const socket = new WebSocket(url); // Open a new WebSocket connection
+    setMoves([]);
+    setFen(null);
 
-    // Handle incoming messages from the server
+    const socket = new WebSocket(url);
+
     socket.onmessage = (event) => {
-      switch (event.data) {
-        case "RESET":
-          // If a RESET signal is received, clear the move history
-          setMoves([]);
-          break;
+      const data = event.data;
 
-        case "INVALID":
-          // If an INVALID signal is received, do nothing (or optionally handle invalid move logic)e
-          break;
-
-        default:
-          // For any other message, treat it as a valid move and append to the move list
-          setMoves((prevMoves) => [...prevMoves, event.data]);
+      if (data.startsWith("FEN:")) {
+        // Extract FEN string and update fen state
+        setFen(data.slice(4));
+      } else if (data === "RESET") {
+        setMoves([]);
+        setFen(null);
+      } else if (data === "INVALID") {
+        // handle invalid move if needed
+      } else if (data.startsWith("MOVE:")) {
+        // Extract move string and append it to moves
+        setMoves((prevMoves) => [...prevMoves, data.slice(5)]);
+      } else {
+        // fallback: treat it as move if no prefix
+        setMoves((prevMoves) => [...prevMoves, data]);
       }
     };
 
-    // Cleanup function to close the WebSocket connection when the component unmounts or URL changes
     return () => socket.close();
-
   }, [url]);
 
-  // Return the list of moves to the component using this hook
-  return moves;
+  // Return both fen and moves to be used by your component
+  return { fen, moves };
 }
