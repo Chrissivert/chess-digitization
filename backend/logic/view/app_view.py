@@ -65,7 +65,7 @@ class App(ctk.CTk):
         ### Left Frame Widgets ###
 
         # Board Canvas
-        self.board_canvas = ctk.CTkCanvas(self.left_frame, bg="white", highlightthickness=0)
+        self.board_canvas = ctk.CTkCanvas(self.left_frame, bg="white", highlightthickness=0, width=700, height=400)
         self.board_canvas.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
 
         # FEN Label
@@ -81,7 +81,9 @@ class App(ctk.CTk):
         self.update_fen_button = ctk.CTkButton(
             self.left_frame,
             text="Update Board from FEN",
-            command=self.update_board_from_fen
+            command=self.update_board_from_fen,
+            font=("Segoe UI", 16),
+            height = 40
         )
         self.update_fen_button.grid(row=3, column=0, pady=(0, 10))
 
@@ -94,9 +96,10 @@ class App(ctk.CTk):
 
         self.number_of_cameras_entry = ctk.CTkEntry(
             self.right_frame,
-            font=("Segoe UI", 14),
+            font=("Segoe UI", 16),
             fg_color=("#ffffff","#333333"),
-            border_width=0
+            border_width=0,
+            height=40
         )
         self.number_of_cameras_entry.insert(0, "Number of Cameras")
         self.number_of_cameras_entry.pack(fill="x", pady=(5, 15), padx=20)
@@ -123,8 +126,9 @@ class App(ctk.CTk):
         self.apply_button = ctk.CTkButton(
             self.right_frame,
             text="Apply Camera Count",
-            font=("Segoe UI", 14),
-            command=self.apply_number_of_cameras
+            font=("Segoe UI", 18),
+            command=self.apply_number_of_cameras,
+            height=75
         )
         self.apply_button.pack(pady=(5, 20), padx=20, fill="x")
         self.apply_button.focus_set()
@@ -135,26 +139,29 @@ class App(ctk.CTk):
         self.reset_select_button = ctk.CTkButton(
             button_frame,
             text="Select Which Board to Reset",
-            font=("Segoe UI", 14),
+            font=("Segoe UI", 18),
             state="disabled",
-            command=self.open_board_reset_window
+            command=self.open_board_reset_window,
+            height=75
         )
         self.reset_select_button.pack(side="left", padx=(0, 20), expand=True, fill="x")
 
         self.reset_button = ctk.CTkButton(
             button_frame,
             text="Reset All Boards",
-            font=("Segoe UI", 14),
+            font=("Segoe UI", 18),
             state="disabled",
-            command=lambda: self.reset_all_boards()
+            command=lambda: self.reset_all_boards(),
+            height=75
         )
         self.reset_button.pack(side="left", expand=True, fill="x")
 
         self.start_button = ctk.CTkButton(
             self.right_frame,
             text="Start Tournament",
-            font=("Segoe UI", 14),
-            state="disabled"
+            font=("Segoe UI", 18),
+            state="disabled",
+            height=100
         )
         self.start_button.pack(pady=(10, 10), padx=20, fill="x")
 
@@ -165,10 +172,9 @@ class App(ctk.CTk):
         self.current_board_image = None  # Keep track of current board image for resize
 
     def _on_board_canvas_resize(self, event):
-        # Debounce resize and redraw current board
         if hasattr(self, '_resize_after_id'):
             self.after_cancel(self._resize_after_id)
-        self._resize_after_id = self.after(100, lambda: self.display_board(self.current_fen))
+        self._resize_after_id = self.after(100, self.resize_and_show_board)
 
     def generate_board_image_async(self, fen):
         board = chess.Board(fen)
@@ -177,33 +183,38 @@ class App(ctk.CTk):
         return Image.open(io.BytesIO(png_data))
 
     def display_board(self, fen):
-        self.current_fen = fen  # Store current fen for resizing
+        self.current_fen = fen
+        # Generate new board image async only when fen changes
+        future = executor.submit(self.generate_board_image_async, fen)
 
         def on_done(future):
             try:
                 image = future.result()
                 self.base_board_image = image
-
-                # Resize image to canvas size
-                width = self.board_canvas.winfo_width()
-                height = self.board_canvas.winfo_height()
-                if width > 0 and height > 0:
-                    resized_image = self.base_board_image.resize((width, height), Image.Resampling.LANCZOS)
-                    self.board_img = ImageTk.PhotoImage(resized_image)
-                    self.board_canvas.delete("all")
-                    self.board_canvas.create_image(0, 0, anchor="nw", image=self.board_img)
+                self.resize_and_show_board()  # Display resized image immediately
             except Exception as e:
                 print("Error generating board image:", e)
 
-        # Run generation in background thread
-        future = executor.submit(self.generate_board_image_async, fen)
         future.add_done_callback(lambda f: self.after(0, on_done, f))
+
+    def resize_and_show_board(self):
+        if self.base_board_image is None:
+            return
+        width = self.board_canvas.winfo_width()
+        height = self.board_canvas.winfo_height()
+        if width <= 0 or height <= 0:
+            return
+
+        resized_image = self.base_board_image.resize((width, height), Image.Resampling.LANCZOS)
+        self.board_img = ImageTk.PhotoImage(resized_image)
+
+        self.board_canvas.delete("all")
+        self.board_canvas.create_image(0, 0, anchor="nw", image=self.board_img)
 
     def update_board_from_fen(self):
         fen = self.fen_entry.get().strip()
         try:
-            board = chess.Board(fen)  # validate fen
-            self.display_board(fen)   # updated to use new display_board directly
+            self.display_board(fen)
             self.highlight_entry_label("Board updated.", CtkTypeEnum.WARNING)
         except Exception as e:
             self.highlight_status_and_entry("Invalid FEN string.", CtkTypeEnum.ERROR)
