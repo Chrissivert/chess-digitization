@@ -1,7 +1,6 @@
 import asyncio
 import threading
 import logic.view.state as state
-from logic.view.ctk_type_enum import CtkTypeEnum
 from fastapi import FastAPI
 from logic.api.routes import admin_routes, video_routes, websocket_routes
 from logic.api.routes.admin_routes import reset_board, reset_all_boards

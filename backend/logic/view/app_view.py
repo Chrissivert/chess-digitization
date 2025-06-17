@@ -260,7 +260,7 @@ class App(ctk.CTk):
             try:
                 self.number_of_cameras = int(number)
                 board_factory = BoardFactory()
-                self.boards = board_factory.create_boards(self.number_of_cameras)
+                self.boards = board_factory.create_boards(self.number_of_cameras, self.fen_entry.get().strip())
                 self.board_service = BoardService()
                 storage.boards = self.boards
 

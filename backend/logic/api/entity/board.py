@@ -8,7 +8,7 @@ from logic.machine_learning.utilities.constants import START_FEN
 class Board:
   """ Chess board class to handle chess moves and history. """
   
-  def __init__(self, id: int):
+  def __init__(self, id: int, fen: str = START_FEN):
     """ Initialize the chess board object.
     Args:
       id (int): Board ID
@@ -17,7 +17,7 @@ class Board:
     self.camera = Camera(id)
     self.move_history: List[str] = []
     self.clients: List[WebSocket] = []
-    self.chess_board = chess.Board(START_FEN)
+    self.chess_board = chess.Board(fen)
     self.invalid_latched = False
     
   def set_id(self, id: int) -> None:
