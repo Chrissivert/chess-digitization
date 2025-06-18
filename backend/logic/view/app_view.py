@@ -40,7 +40,7 @@ class App(ctk.CTk):
 
         # Configure grid in container for resizing behavior
         container.grid_columnconfigure(0, weight=1)
-        container.grid_columnconfigure(1, weight=1)
+        container.grid_columnconfigure(1, weight=3)
         container.grid_rowconfigure(0, weight=1)
 
         # LEFT FRAME - for FEN input, board, update button
@@ -122,6 +122,8 @@ class App(ctk.CTk):
 
         self.number_of_cameras_entry.bind("<FocusIn>", on_focus_in)
         self.number_of_cameras_entry.bind("<FocusOut>", on_focus_out)
+        
+        self.right_frame.pack_propagate(False)
 
         self.apply_button = ctk.CTkButton(
             self.right_frame,
