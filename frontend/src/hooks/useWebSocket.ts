@@ -54,6 +54,7 @@ export function useFenWebSocket(url: string) {
       // The fen endpoint sends "FEN:<fenstring>"
       if (event.data.startsWith("FEN:")) {
         setFen(event.data.slice(4));
+        console.log("Received FEN:", event.data.slice(4));
       }
     };
 

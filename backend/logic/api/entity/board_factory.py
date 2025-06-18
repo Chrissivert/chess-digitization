@@ -6,5 +6,6 @@ class BoardFactory:
   def create_boards(self, board_count:int, fen: str) -> dict[int, Board]:
     """ Create a dictionary of Board objects. """
     print(fen)
+    print("creating boards")
     boards = {i: Board(i, fen) for i in range(1, (board_count + 1))}
     return boards

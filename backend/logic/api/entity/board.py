@@ -3,12 +3,12 @@ from fastapi import WebSocket
 from typing import List, Literal
 from .camera import Camera
 
-from logic.machine_learning.utilities.constants import START_FEN
+from logic.machine_learning.utilities.constants import DEFAULT_FEN
 
 class Board:
   """ Chess board class to handle chess moves and history. """
   
-  def __init__(self, id: int, fen: str = START_FEN):
+  def __init__(self, id: int, fen: str = DEFAULT_FEN):
     """ Initialize the chess board object.
     Args:
       id (int): Board ID

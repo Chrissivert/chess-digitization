@@ -45,6 +45,7 @@ async def websocket_fen_only(websocket: WebSocket, board_id: int) -> None:
     try:
         # Send only the current FEN
         await websocket.send_text(f"FEN:{storage.boards[board_id].chess_board.fen()}")
+        print(f"WebSocket connected for board {board_id}, sending FEN: {storage.boards[board_id].chess_board.fen()}")
 
         # Keep connection open waiting for messages (to keep alive)
         while True:
