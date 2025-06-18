@@ -6,27 +6,11 @@ import Tile from "../tile/tile";
 import { useWebSocket } from "../../hooks/useWebSocket";
 import { useFenWebSocket } from "../../hooks/useWebSocket";
 
-
-/**
- * Chessboard Component
- *
- * This component renders a full chessboard UI and manages game state using `chess.ts`.
- * It receives move updates via WebSocket, updates board position accordingly,
- * highlights the most recent move, and exposes its move list to parent components via ref.
- */
-
-// Represents a single piece's position and image
 interface Piece {
   image: string;
   x: number;
   y: number;
 }
-
-/**
- * Converts a FEN string into an array of Piece objects.
- * Maps chess notation characters to piece image paths and coordinates.
- * The y-coordinate is flipped to align with visual board orientation.
- */
 
 function generatePositionFromFen(fen: string): Piece[] {
   const board = fen.split(" ")[0];
@@ -42,7 +26,6 @@ function generatePositionFromFen(fen: string): Piece[] {
 
   const pieces: Piece[] = [];
 
-  // Parse the FEN rows (from top to bottom)
   for (let y = 0; y < rows.length; y++) {
     let x = 0;
     for (const char of rows[y]) {
@@ -59,25 +42,10 @@ function generatePositionFromFen(fen: string): Piece[] {
   return pieces;
 }
 
-/**
- * Props for Chessboard
- * - `id`: Unique ID for the board, used in WebSocket connection
- */
 interface ChessboardProps {
   id: string | undefined;
 }
 
-/**
- * Ref interface exposed by the Chessboard component.
- *
- * This allows parent components to access certain chess game data
- * directly through the component's reference using `useImperativeHandle`.
- *
- * Methods exposed:
- * - `getMoves()`: Returns a list of SAN (Standard Algebraic Notation) moves
- * - `getFEN()`: Returns the current board state in Forsyth–Edwards Notation
- * - `getPGN()`: Returns the full move history in PGN (Portable Game Notation) format
- */
 export interface ChessboardHandle {
   getMoves: () => string[];
   getFEN: () => string;
@@ -85,52 +53,34 @@ export interface ChessboardHandle {
 }
 
 const Chessboard = forwardRef<ChessboardHandle, ChessboardProps>(({ id }, ref) => {
+  const fenFromWebSocket = useFenWebSocket(`ws://localhost:8000/fen/${id}`);
+  const moves = useWebSocket(`ws://localhost:8000/moves/${id}`);
+
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [moveList, setMoveList] = useState<string[]>([]);
   const [lastMoveSquares, setLastMoveSquares] = useState<string[]>([]);
-  const moves = useWebSocket(`ws://localhost:8000/moves/${id}`);
-  const fenFromWebSocket = useFenWebSocket(`ws://localhost:8000/fen/${id}`);
+  const chessRef = useRef<Chess | null>(null);
 
-  console.log(fenFromWebSocket);
-  console.log("fenfromwebsocket")
-
-   const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  const chessRef = useRef(new Chess(fenFromWebSocket ?? START_FEN));
-
-  console.log(chessRef.current.fen());
-  console.log("chessref current fen")
-
-  const chess = chessRef.current;
-
-
-  /**
-   * Expose internal chess game data to the parent component via `ref`.
-   *
-   * This allows external access to:
-   * - The move history
-   * - The current FEN string
-   * - The full PGN history
-   */
-  useImperativeHandle(ref, () => ({
-    getMoves: () => moveList,
-    getFEN: () => chess.fen(),
-    getPGN: () => chess.pgn(),
-  }));
-  
-  /**
-   * Initializes the board on first render using the current FEN from `chess.ts`.
-   * Also exposes a helper `makeMove` function to the browser console for debugging.
-   * 
-   * NOTE: Used for testing the board manually through console input.
-   */
+  // Initialize chess only when fenFromWebSocket is valid (not null/undefined)
   useEffect(() => {
-    setPieces(generatePositionFromFen(chess.fen()));
+    if (!fenFromWebSocket) {
+      return;
+    }
 
-    // Expose move handler for console
+    // Initialize chess instance with the current FEN
+    chessRef.current = new Chess(fenFromWebSocket);
+    const chess = chessRef.current;
+
+    setPieces(generatePositionFromFen(chess.fen()));
+    setMoveList([]);
+    setLastMoveSquares([]);
+
+    // Expose move handler for console debugging
     (window as any).makeMove = (notation: string) => {
-      const move = chess.move(notation);
+      if (!chessRef.current) return;
+      const move = chessRef.current.move(notation);
       if (move) {
-        setPieces(generatePositionFromFen(chess.fen()));
+        setPieces(generatePositionFromFen(chessRef.current.fen()));
         setMoveList((prev) => [...prev, move.san]);
 
         let highlights: string[] = [];
@@ -148,29 +98,28 @@ const Chessboard = forwardRef<ChessboardHandle, ChessboardProps>(({ id }, ref) =
         console.warn("Illegal move:", notation);
       }
     };
-  }, []);
+  }, [fenFromWebSocket]);
 
-  /**
-   * Apply all moves received from the WebSocket.
-   * Valid moves are added to the move list and used to update the board.
-   * The most recent move's squares are tracked for highlighting.
-   */
+  // Handle moves received from WebSocket once chess is initialized
   useEffect(() => {
-    chess.load(chess.fen()); // Reset the chess instance to the starting position
-
-    console.log(chess.fen());
-    console.log("See above");
-
+    if (!chessRef.current) return;
     if (!moves || moves.length === 0) {
       setMoveList([]);
       setLastMoveSquares([]);
-      setPieces(generatePositionFromFen(chess.fen()));
+      setPieces(generatePositionFromFen(chessRef.current.fen()));
       return;
     }
 
+    const chess = chessRef.current;
+    // Reset chess to initial position before applying moves
+    chess.load(fenFromWebSocket || chess.fen());
+
     const validSanMoves: string[] = [];
 
-    // Attempt to apply each move to the chess instance
+    console.log("Received moves from WebSocket:", moves);
+    console.log("Current FEN:", chess.fen());
+    console.log(validSanMoves)
+
     moves.forEach((notation) => {
       const move = chess.move(notation);
       if (move) {
@@ -200,17 +149,23 @@ const Chessboard = forwardRef<ChessboardHandle, ChessboardProps>(({ id }, ref) =
       }
       setPieces(generatePositionFromFen(chess.fen()));
     }
-  }, [moves]);
+  }, [moves, fenFromWebSocket]);
+
+  useImperativeHandle(ref, () => ({
+    getMoves: () => moveList,
+    getFEN: () => chessRef.current?.fen() || "",
+    getPGN: () => chessRef.current?.pgn() || "",
+  }));
+
+  if (!fenFromWebSocket) {
+    // Optionally render a loading state while waiting for FEN
+    return <div>Loading chessboard...</div>;
+  }
 
   const verticalAxis = ["1", "2", "3", "4", "5", "6", "7", "8"];
   const horizontalAxis = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const board = [];
 
-
-   /**
-   * Generates the full 8x8 chessboard as a grid of tiles.
-   * Each tile receives a piece image if one exists at its (x, y) coordinate.
-   */
   for (let j = verticalAxis.length - 1; j >= 0; j--) {
     for (let i = 0; i < horizontalAxis.length; i++) {
       const number = j + i + 2;
@@ -236,11 +191,7 @@ const Chessboard = forwardRef<ChessboardHandle, ChessboardProps>(({ id }, ref) =
     }
   }
 
-  return (
-    <div id="chessboard">
-      {board}
-    </div>
-  );
+  return <div id="chessboard">{board}</div>;
 });
 
 export default Chessboard;

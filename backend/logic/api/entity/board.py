@@ -18,6 +18,7 @@ class Board:
     self.move_history: List[str] = []
     self.clients: List[WebSocket] = []
     self.chess_board = chess.Board(fen)
+    self.first_fen = fen
     self.invalid_latched = False
     
   def set_id(self, id: int) -> None:

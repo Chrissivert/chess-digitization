@@ -43,9 +43,10 @@ async def websocket_fen_only(websocket: WebSocket, board_id: int) -> None:
 
     storage.boards[board_id].clients.append(websocket)
     try:
-        # Send only the current FEN
-        await websocket.send_text(f"FEN:{storage.boards[board_id].chess_board.fen()}")
-        print(f"WebSocket connected for board {board_id}, sending FEN: {storage.boards[board_id].chess_board.fen()}")
+        # Send the initial FEN stored in the board, not the current chess_board position
+        initial_fen = storage.boards[board_id].first_fen
+        await websocket.send_text(f"FEN:{initial_fen}")
+        print(f"WebSocket connected for board {board_id}, sending initial FEN: {initial_fen}")
 
         # Keep connection open waiting for messages (to keep alive)
         while True:
@@ -53,4 +54,3 @@ async def websocket_fen_only(websocket: WebSocket, board_id: int) -> None:
     except Exception:
         if websocket in storage.boards[board_id].clients:
             storage.boards[board_id].clients.remove(websocket)
-
